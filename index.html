@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Air Astana Group · Group 6</title>
+  <link rel="stylesheet"
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Playfair+Display:ital,wght@0,600;1,500&display=swap">
+  <link rel="stylesheet" href="index.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+  <script src="index.js" defer></script>
+</head>
+
+<body>
+  <div id="bar"></div>
+  <header><b class="logo">Air Astana Group</b>
+    <nav id="menu"></nav><span id="count"></span>
+  </header>
+  <main id="deck">
+    <section class="slide hero" id="s-home">
+      <!-- BACKGROUND: replace the .sky div (or its SVG) with your own photo: background:url(plane.jpg) center/cover -->
+      <div class="sky"><svg viewBox="0 0 1200 600" preserveAspectRatio="xMidYMid slice">
+          <defs>
+            <linearGradient id="trail">
+              <stop offset="0" stop-color="#fff" stop-opacity="0" />
+              <stop offset="1" stop-color="#fff" stop-opacity=".35" />
+            </linearGradient>
+            <linearGradient id="g" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0" stop-color="#0A1628" />
+              <stop offset="1" stop-color="#27415f" />
+            </linearGradient>
+          </defs>
+          <rect width="1200" height="600" fill="url(#g)" />
+          <g class="cloud c1" fill="#fff" opacity=".07">
+            <ellipse cx="200" cy="420" rx="170" ry="34" />
+            <ellipse cx="300" cy="400" rx="110" ry="40" />
+          </g>
+          <g class="cloud c2" fill="#fff" opacity=".05">
+            <ellipse cx="800" cy="480" rx="220" ry="40" />
+            <ellipse cx="930" cy="455" rx="120" ry="42" />
+          </g>
+          <g>
+            <animateMotion dur="45s" repeatCount="indefinite" rotate="auto"
+              path="M-260 430 C 250 380, 700 230, 1460 120" />
+            <g transform="scale(.85)">
+              <rect x="-420" y="31" width="420" height="2" fill="url(#trail)" />
+              <path d="M8 26 L0 3 L20 3 L46 26Z" fill="#E6C256" />
+              <path d="M92 36 L66 64 L84 64 L128 38Z" fill="#b9c6d6" />
+              <path d="M8 24 L150 22 C176 22 192 28 198 32 C192 37 176 41 150 41 L30 41 C18 40 12 34 8 24Z"
+                fill="#e7edf4" />
+              <path d="M50 29 H140" stroke="#27415f" stroke-width="2" stroke-dasharray="3 5" />
+              <path d="M172 29 h10" stroke="#27415f" stroke-width="3" />
+              <ellipse cx="108" cy="49" rx="13" ry="5" fill="#8fa2b8" />
+            </g>
+          </g>
+        </svg></div>
+      <div class="hero-text">
+        <h1>Air Astana Group</h1>
+        <p class="sub" id="proj"></p>
+        <p class="by" id="team"></p><button class="gold" data-go="1">Explore</button>
+      </div>
+    </section>
+    <section class="slide" id="s-overview">
+      <h2>Company overview</h2>
+      <div class="two" id="cards"></div>
+      <div class="tl" id="tl"></div>
+      <p id="tlText" class="note"></p>
+      <div class="two" id="mm"></div>
+    </section>
+    <section class="slide" id="s-fin">
+      <h2>Revenue keeps growing, profit doesn’t</h2>
+      <div class="seg" id="yrs"></div>
+      <div class="kpis" id="kpis"></div>
+      <div class="grid4">
+        <div class="card"><canvas id="c1"></canvas></div>
+        <div class="card"><canvas id="c2"></canvas></div>
+        <div class="card"><canvas id="c3"></canvas></div>
+        <div class="card"><canvas id="c4"></canvas></div>
+      </div>
+      <p class="note">Company figures in US dollars, shown in millions.</p>
+    </section>
+    <section class="slide" id="s-model">
+      <h2>Business model</h2>
+      <div class="seg" id="bmSwitch"></div>
+      <div class="two" id="bmTables"></div>
+    </section>
+    <section class="slide" id="s-sim">
+      <h2>What happens when costs move?</h2>
+      <p class="note warn">Учебная симуляция. Не является прогнозом компании. / Educational simulation, not a company
+        forecast.</p>
+      <div class="sim">
+        <div class="card" id="panel">
+          <div class="seg" id="scen"></div>
+          <div id="sliders"></div><button class="ghost" id="reset">Reset</button>
+        </div>
+        <div>
+          <div class="kpis" id="simKpis"></div>
+          <div class="card tall"><canvas id="bep"></canvas></div>
+          <div class="card short"><canvas id="sens"></canvas></div>
+        </div>
+      </div>
+    </section>
+    <section class="slide" id="s-end">
+      <h2>What we take away</h2>
+      <div class="grid4" id="findings"></div>
+      <div id="recsWrap">
+        <h3>Our recommendations</h3>
+        <ol id="recs"></ol>
+      </div>
+      <p class="thanks">Thank you. Questions?</p>
+      <p class="team" id="team2"></p>
+    </section>
+  </main>
+  <footer><button class="ghost" id="prev">Back</button>
+    <button class="gold" id="next">Next</button></footer>
+  <div id="timer" hidden></div>
+</body>
+
+</html>
