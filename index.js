@@ -32,7 +32,7 @@ const DATA = {
 const $ = id => document.getElementById(id), F = DATA.fin, N = DATA.fin.years.length;
 const money = v => '$' + (v / 1000).toLocaleString('en', { maximumFractionDigits: 1 }) + 'M';
 const GOLD = '#C9A227', DIM = 'rgba(201,162,39,.35)', TXT = '#9fb0c6';
-Chart.defaults.color = TXT; Chart.defaults.font.family = 'Inter';
+Chart.defaults.color = TXT; Chart.defaults.font.family = 'Inter'; Chart.defaults.font.size = innerWidth < 600 ? 10 : 12;
 function countUp(el, to, fmt) { // animate number from its previous value
     const from = +el.dataset.v || 0, t0 = performance.now(); el.dataset.v = to;
     const reduce = matchMedia('(prefers-reduced-motion:reduce)').matches;
@@ -53,6 +53,8 @@ function go(i) {
     $('bar').style.width = (cur + 1) / live.length * 100 + '%'; $('count').textContent = (cur + 1) + ' / ' + live.length;
     $('prev').style.visibility = cur ? 'visible' : 'hidden'; $('next').style.visibility = cur < last ? 'visible' : 'hidden';
     slides[cur].scrollTop = 0;
+    const ab = document.querySelector('#menu .on'), mn = $('menu'); // keep active menu item visible on phones
+    if (ab) mn.scrollTo({ left: ab.offsetLeft - mn.clientWidth / 2 + ab.offsetWidth / 2, behavior: 'smooth' });
 }
 document.addEventListener('click', e => { const b = e.target.closest('[data-go]'); if (b) go(+b.dataset.go); });
 $('prev').onclick = () => go(cur - 1); $('next').onclick = () => go(cur + 1);
@@ -61,11 +63,16 @@ addEventListener('keydown', e => {
     if (e.key === 'ArrowRight' || e.key === ' ') { e.preventDefault(); go(cur + 1); }
     else if (e.key === 'ArrowLeft') go(cur - 1);
     else if (/^[1-9]$/.test(e.key) && +e.key <= live.length) go(+e.key - 1);
-    else if (e.key.toLowerCase() === 'f') document.fullscreenElement ? document.exitFullscreen() : document.documentElement.requestFullscreen();
+    else if (e.key.toLowerCase() === 'f') document.fullscreenElement ? document.exitFullscreen() : document.documentElement.requestFullscreen?.();
     else if (e.key.toLowerCase() === 't') { $('timer').hidden = !$('timer').hidden; t0 = Date.now(); }
 });
-let sx = 0; addEventListener('touchstart', e => sx = e.touches[0].clientX);
-addEventListener('touchend', e => { const d = e.changedTouches[0].clientX - sx; if (Math.abs(d) > 60) go(cur + (d < 0 ? 1 : -1)); });
+// swipe between slides: ignored on sliders, menus, tables, multi-touch and mostly-vertical gestures
+let sx = 0, sy = 0, skip = false; const noSwipe = 'input,nav,.seg,#tl,table,.mini';
+addEventListener('touchstart', e => { sx = e.touches[0].clientX; sy = e.touches[0].clientY; skip = e.touches.length > 1 || !!e.target.closest(noSwipe); }, { passive: true });
+addEventListener('touchend', e => {
+    if (skip) return; const dx = e.changedTouches[0].clientX - sx, dy = e.changedTouches[0].clientY - sy;
+    if (Math.abs(dx) > 60 && Math.abs(dx) > 1.5 * Math.abs(dy)) go(cur + (dx < 0 ? 1 : -1));
+}, { passive: true });
 setInterval(() => {
     const left = Math.max(0, 420 - (Date.now() - t0) / 1000);
     $('timer').textContent = `${Math.floor(left / 60)}:${String(Math.floor(left % 60)).padStart(2, '0')} left · this slide ≈ ${Math.round(live[cur][3] / msum * 420)}s`;
@@ -151,7 +158,11 @@ const sim = new Chart($('bep'), {
             { label: 'Total cost', data: [], borderColor: '#9fb0c6', pointRadius: 0 },
             { type: 'scatter', label: 'BEP', data: [], backgroundColor: GOLD, borderColor: '#fff', pointRadius: 8 }]
     },
-    options: { maintainAspectRatio: false, animation: false, parsing: false, scales: { x: { type: 'linear', title: { display: true, text: 'Flights per month' } }, y: { ticks: { callback: v => money(v / 1000) } } } }
+    options: {
+        maintainAspectRatio: false, animation: false, parsing: false, interaction: { mode: 'nearest', intersect: false, axis: 'x' },
+        plugins: { legend: { labels: { boxWidth: 10 } }, tooltip: { callbacks: { label: c => ' ' + c.dataset.label + ': ' + (c.dataset.label === 'BEP' ? Math.ceil(c.parsed.x) + ' flights' : money(c.parsed.y / 1000)) } } },
+        scales: { x: { type: 'linear', title: { display: true, text: 'Flights per month' }, ticks: { maxTicksLimit: 6 } }, y: { ticks: { maxTicksLimit: 6, callback: v => money(v / 1000) } } }
+    }
 });
 const sens = new Chart($('sens'), {
     type: 'bar', data: { labels: ['Fuel base', 'Fuel +10%', 'Fuel +20%'], datasets: [{ data: [], backgroundColor: [] }] },
@@ -163,10 +174,11 @@ function simUpdate() {
     for (let i = 0; i <= 20; i++) { const x = xmax * i / 20; pts.push(x); }
     sim.data.datasets[0].data = pts.map(x => ({ x, y: x * r.revF })); sim.data.datasets[1].data = pts.map(x => ({ x, y: r.fixed + x * r.varF }));
     sim.data.datasets[2].data = r.bep ? [{ x: r.bep, y: r.bep * r.revF }] : []; sim.update();
-    const sv = [1, 1.1, 1.2].map(m => calc(m).profit); sens.data.datasets[0].data = sv; sens.data.datasets[0].backgroundColor = sv.map(v => v >= 0 ? GOLD : '#f0616d'); sens.update();
+    const sv = [1, 1.1, 1.2].map(m => calc(m).profit); sens.data.datasets[0].data = sv; sens.data.datasets[0].backgroundColor = sv.map(v => v >= 0 ? GOLD : '#f0616d'); sens.update('none');
     const k = [['Revenue', money(r.rev / 1000), ''], ['Total cost', money(r.cost / 1000), ''], [r.profit >= 0 ? 'Profit' : 'Loss', money(r.profit / 1000), r.profit >= 0 ? 'up' : 'down'],
     ['Margin', r.margin.toFixed(1) + '%', r.margin >= 0 ? 'up' : 'down'], ['Break-even', r.bep ? Math.ceil(r.bep) + ' flights' : 'never', '']];
     $('simKpis').innerHTML = k.map(([n, v, c]) => `<div class="kpi"><span>${n}</span><b class="${c}">${v}</b></div>`).join('');
+    $('simMini').innerHTML = k.slice(2).map(([n, v, c]) => `<span>${n}<b class="${c}">${v}</b></span>`).join(''); // sticky summary for phones
     document.querySelectorAll('#scen button').forEach(b => b.classList.toggle('on', b.dataset.s === scen));
 }
 DATA.params.forEach(([k]) => $('r_' + k).oninput = e => { val[k] = +e.target.value; simUpdate(); });
