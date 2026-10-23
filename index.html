@@ -3,7 +3,7 @@
 
 <head>
   <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
   <title>Air Astana Group · Group 6</title>
   <link rel="stylesheet"
     href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Playfair+Display:ital,wght@0,600;1,500&display=swap">
@@ -73,10 +73,18 @@
       <div class="seg" id="yrs"></div>
       <div class="kpis" id="kpis"></div>
       <div class="grid4">
-        <div class="card"><canvas id="c1"></canvas></div>
-        <div class="card"><canvas id="c2"></canvas></div>
-        <div class="card"><canvas id="c3"></canvas></div>
-        <div class="card"><canvas id="c4"></canvas></div>
+        <div class="card">
+          <div class="cv"><canvas id="c1"></canvas></div>
+        </div>
+        <div class="card">
+          <div class="cv"><canvas id="c2"></canvas></div>
+        </div>
+        <div class="card">
+          <div class="cv"><canvas id="c3"></canvas></div>
+        </div>
+        <div class="card">
+          <div class="cv"><canvas id="c4"></canvas></div>
+        </div>
       </div>
       <p class="note">Company figures in US dollars, shown in millions.</p>
     </section>
@@ -89,6 +97,7 @@
       <h2>What happens when costs move?</h2>
       <p class="note warn">Учебная симуляция. Не является прогнозом компании. / Educational simulation, not a company
         forecast.</p>
+      <div class="mini" id="simMini"></div>
       <div class="sim">
         <div class="card" id="panel">
           <div class="seg" id="scen"></div>
@@ -96,8 +105,12 @@
         </div>
         <div>
           <div class="kpis" id="simKpis"></div>
-          <div class="card tall"><canvas id="bep"></canvas></div>
-          <div class="card short"><canvas id="sens"></canvas></div>
+          <div class="card tall">
+            <div class="cv"><canvas id="bep"></canvas></div>
+          </div>
+          <div class="card short">
+            <div class="cv"><canvas id="sens"></canvas></div>
+          </div>
         </div>
       </div>
     </section>
@@ -113,7 +126,8 @@
     </section>
   </main>
   <footer><button class="ghost" id="prev">Back</button>
-    <button class="gold" id="next">Next</button></footer>
+    <button class="gold" id="next">Next</button>
+  </footer>
   <div id="timer" hidden></div>
 </body>
 
