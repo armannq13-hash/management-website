@@ -2,12 +2,15 @@
 const DATA = {
     project: '', // optional subtitle under the title; leave empty to use a default
     team: '', // optional, e.g. 'Name, Name, Name'
-    // Financials in USD thousands (as supplied). NOTE: check 2020 net profit - 93,933 looks like a loss (-93,933)
+    // Financials in USD thousands. Checked against Air Astana's audited IFRS consolidated statements (ir.airastana.com):
+    // FY2019 statements; FY2021 statements (comparatives 2020, 2019); FY2022 statements (2021 operating profit restated to 102,173,
+    // originally 94,160); FY2023 statements; FY2024 and FY2025 results releases.
+    // Revenue = "total revenue and other income" as reported. 2020 was a loss year: operating loss -69,314, net loss -93,933.
     fin: {
         years: [2019, 2020, 2021, 2022, 2023, 2024, 2025],
         revenue: [898729, 400264, 761838, 1032382, 1174514, 1309148, 1453890],
-        op: [78699, 69314, 102173, 148715, 135981, 130006, 88125],
-        net: [30032, 93933, 36159, 78414, 68705, 52776, 13552],
+        op: [78699, -69314, 102173, 148715, 135981, 130006, 88125],
+        net: [30032, -93933, 36159, 78414, 68705, 52776, 13552],
         assets: [992594, 1049154, 1102193, 1250875, 1362444, 1813075, 2056581],
         equity: [103181, 18407, 63974, 152268, 213359, 394530, 369314],
         liab: [889413, 1030747, 1038219, 1098607, 1149085, 1418545, 1687267]
@@ -30,7 +33,7 @@ const DATA = {
 };
 /* ===== helpers ===== */
 const $ = id => document.getElementById(id), F = DATA.fin, N = DATA.fin.years.length;
-const money = v => '$' + (v / 1000).toLocaleString('en', { maximumFractionDigits: 1 }) + 'M';
+const money = v => (v < 0 ? '-$' : '$') + (Math.abs(v) / 1000).toLocaleString('en', { maximumFractionDigits: 1 }) + 'M';
 const GOLD = '#C9A227', DIM = 'rgba(201,162,39,.35)', TXT = '#9fb0c6';
 Chart.defaults.color = TXT; Chart.defaults.font.family = 'Inter'; Chart.defaults.font.size = innerWidth < 600 ? 10 : 12;
 function countUp(el, to, fmt) { // animate number from its previous value
@@ -90,7 +93,7 @@ if (hasOverview) {
     $('tl').firstChild?.click();
 }
 /* ===== financial dashboard ===== */
-let year = 'all'; const yrBtns = [2023, 2024, 2025, 'all'];
+let year = 'all'; const yrBtns = [...F.years, 'all'];
 $('yrs').innerHTML = yrBtns.map(y => `<button data-y="${y}">${y === 'all' ? 'All years' : y}</button>`).join('');
 const mk = (id, cfg) => new Chart($(id), {
     ...cfg, options: {
@@ -106,22 +109,25 @@ mk('c2', { type: 'line', t: 'Profit for the year', data: { labels, datasets: [{ 
 mk('c3', { type: 'doughnut', t: 'Equity vs liabilities', data: { labels: ['Equity', 'Liabilities'], datasets: [{ data: [0, 0], backgroundColor: [GOLD, '#27415f'], borderColor: '#0F2038' }] } }),
 mk('c4', { type: 'line', t: 'Operating margin, %', data: { labels, datasets: [{ data: margin, pct: 1, borderColor: '#E6C256', tension: .3 }] } })];
 function fin(y) {
-    year = y; const i = y === 'all' ? N - 1 : F.years.indexOf(+y);
+    year = y; const all = y === 'all', i = all ? N - 1 : F.years.indexOf(+y), j = all ? 0 : i - 1; // j = comparison year: prior year, or 2019 in "All years"
     document.querySelectorAll('#yrs button').forEach(b => b.classList.toggle('on', b.dataset.y == y));
-    const items = [['Revenue', F.revenue[i], F.revenue[i - 1], money], ['Operating profit', F.op[i], F.op[i - 1], money],
-    ['Profit for the year', F.net[i], F.net[i - 1], money], ['Operating margin', margin[i], margin[i - 1], v => v.toFixed(1) + '%'],
-    ['Total assets', F.assets[i], F.assets[i - 1], money], ['Total equity', F.equity[i], F.equity[i - 1], money]];
+    const items = [['Revenue', F.revenue[i], F.revenue[j], money], ['Operating profit', F.op[i], F.op[j], money],
+    ['Profit for the year', F.net[i], F.net[j], money], ['Operating margin', margin[i], margin[j], v => v.toFixed(1) + '%'],
+    ['Total assets', F.assets[i], F.assets[j], money], ['Total equity', F.equity[i], F.equity[j], money]];
     if (!$('kpis').children.length) $('kpis').innerHTML = items.map((_, k) => `<div class="kpi"><span></span><b></b><em></em></div>`).join('');
     items.forEach(([n, v, p, f], k) => {
-        const el = $('kpis').children[k], d = v - p;
+        const el = $('kpis').children[k], has = p !== undefined, d = v - p;
         el.children[0].textContent = n + ' ' + F.years[i]; countUp(el.children[1], v, f);
-        el.children[2].className = d >= 0 ? 'up' : 'down'; el.children[2].textContent = (d >= 0 ? '▲ ' : '▼ ') + f(Math.abs(d)) + ' vs prior year';
+        el.children[2].className = has ? (d >= 0 ? 'up' : 'down') : '';
+        el.children[2].textContent = has ? (d >= 0 ? '▲ ' : '▼ ') + f(Math.abs(d)) + (all ? ' vs ' + F.years[0] : ' vs prior year') : 'first year in the data';
     });
     const hl = k => y === 'all' || F.years[k] == y ? GOLD : DIM;
     ch[0].data.datasets[0].backgroundColor = F.years.map((_, k) => hl(k));
     ch[1].data.datasets[0].pointBackgroundColor = F.years.map((_, k) => hl(k));
-    ch[2].data.datasets[0].data = [F.equity[i], F.liab[i]]; ch.forEach(c => c.update());
+    ch[2].data.datasets[0].data = [F.equity[i], F.liab[i]]; ch[2].options.plugins.title.text = 'Equity vs liabilities, ' + F.years[i];
+    ch.forEach(c => c.update());
 }
+document.querySelector('#s-fin .note').textContent = 'Company figures in US dollars, shown in millions. Source: Air Astana Group audited IFRS financial statements and results releases, ' + F.years[0] + '–' + F.years[N - 1] + ' (ir.airastana.com). 2020 is a loss year.';
 $('yrs').onclick = e => e.target.dataset.y && fin(e.target.dataset.y); fin('all');
 /* ===== business model ===== */
 if (hasModel) {
